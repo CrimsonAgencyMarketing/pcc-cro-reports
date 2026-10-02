@@ -1,0 +1,117 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Polynesia CRO Audit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&display=swap">
+<style>
+/* Layout: one working surface. Tabs pick a view, one filter row scopes it, summary first, tables under charts. */
+:root{
+  --bg:#f3f6f6; --surface:#fcfdfd; --ink:#0d1718; --ink2:#465557; --muted:#7a888a; --grid:#dfe6e7; --axis:#c2cccd; --border:rgba(13,23,24,.12);
+  --accent:#0b6b74; --accent-ink:#ffffff; --wash:rgba(11,107,116,.08);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --good:#006300; --bad:#b42323; --warnbg:#fff4d6; --warnink:#6b4a00;
+  --display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif; --body:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0b1011; --surface:#141b1c; --ink:#f1f6f6; --ink2:#b7c3c4; --muted:#7f8d8f; --grid:#243031; --axis:#36494b; --border:rgba(255,255,255,.12);
+  --accent:#5cc4cf; --accent-ink:#06191b; --wash:rgba(92,196,207,.12);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+  --good:#3fc23f; --bad:#f07a7a; --warnbg:#3a2e0c; --warnink:#f5d98a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0b1011; --surface:#141b1c; --ink:#f1f6f6; --ink2:#b7c3c4; --muted:#7f8d8f; --grid:#243031; --axis:#36494b; --border:rgba(255,255,255,.12);
+  --accent:#5cc4cf; --accent-ink:#06191b; --wash:rgba(92,196,207,.12);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+  --good:#3fc23f; --bad:#f07a7a; --warnbg:#3a2e0c; --warnink:#f5d98a; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:17px;margin:0;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:14px;margin:0}
+p{margin:0}
+.sub{color:var(--ink2);max-width:75ch}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.head{display:flex;flex-direction:column;gap:6px}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--border);padding-bottom:0;scrollbar-width:thin}
+.tab{appearance:none;border:0;background:none;color:var(--ink2);font:inherit;font-weight:600;padding:9px 12px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:focus-visible,select:focus-visible,button:focus-visible,input:focus-visible,th:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.filters label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+select,input[type=number]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+.note{font-size:12px;color:var(--ink2)}
+.flag{background:var(--warnbg);color:var(--warnink);border-radius:6px;padding:8px 10px;font-size:12.5px}
+.view{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .lab{font-size:12px;color:var(--ink2)}
+.kpi .val{font-size:22px;font-weight:650;font-family:var(--display)}
+.kpi.hero .val{font-size:40px;line-height:1.05}
+.kpi .dl{font-size:12px;color:var(--ink2)}
+.up{color:var(--good);font-weight:600}.down{color:var(--bad);font-weight:600}
+.tblwrap{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.txt,th.txt{text-align:left;white-space:normal;min-width:180px}
+th{color:var(--ink2);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--surface);cursor:pointer;user-select:none}
+th[aria-sort]{color:var(--accent)}
+tbody tr:hover{background:var(--wash)}
+tr.click{cursor:pointer}
+.low{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--muted)}
+.pill.Strong i{background:var(--s3)}.pill.Moderate i{background:var(--s1)}.pill.Directional i{background:var(--s4)}.pill.Insufficient i{background:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{display:inline-block;width:14px;height:0;border-top:2px solid var(--c)}
+.legend b.box{height:10px;width:10px;border:0;background:var(--c);border-radius:2px}
+.chart{position:relative;min-width:0}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);z-index:5;min-width:120px;font-variant-numeric:tabular-nums}
+.tip .t{color:var(--ink2);margin-bottom:2px}
+.tip .r{display:flex;justify-content:space-between;gap:12px}
+.tip .r b{font-weight:650}
+.tip .k{display:inline-block;width:10px;border-top:2px solid var(--c);vertical-align:middle;margin-right:5px}
+.prose{display:flex;flex-direction:column;gap:8px;max-width:78ch}
+.prose ul,.prose ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+dl.kv{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:6px 14px;margin:0}
+dl.kv dt{color:var(--ink2);font-weight:600;font-size:12.5px}
+dl.kv dd{margin:0;min-width:0}
+@media (max-width:560px){dl.kv{grid-template-columns:1fr}dl.kv dd{margin-bottom:6px}.kpi.hero .val{font-size:32px}}
+.qc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:4px 16px;font-size:12.5px}
+.qc div{display:flex;gap:6px;align-items:baseline}
+.qc .m{font-weight:700;min-width:54px}
+.qc .pass{color:var(--good)}.qc .fail{color:var(--bad)}.qc .partial,.qc .na{color:var(--ink2)}
+.steps{display:grid;grid-template-columns:minmax(120px,1.3fr) repeat(2,minmax(70px,1fr)) minmax(70px,.8fr);gap:4px 10px;font-variant-numeric:tabular-nums;font-size:13px;align-items:center}
+.steps .h{font-size:12px;color:var(--ink2);font-weight:600}
+.bar{height:8px;border-radius:0 4px 4px 0;background:var(--c);min-width:2px}
+.barcell{display:flex;flex-direction:column;gap:2px}
+details summary{cursor:pointer;font-weight:600}
+</style>
+<div class="wrap">
+  <div class="head">
+    <span class="eyebrow">GA4 property polynesia.com · data through Sep 29, 2026 · built Oct 1, 2026</span>
+    <h1>Polynesia CRO Audit</h1>
+    <p class="sub">Revenue per session is the primary lens. Every number here was read from GA4 or calculated from GA4 values. Hypotheses are labeled as hypotheses.</p>
+  </div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="filters" id="gfilters">
+    <label>Date range<select id="f-period"></select></label>
+    <label>Market<select id="f-market"><option value="all">All traffic</option><option value="us">US only</option></select></label>
+    <span class="note" id="gnote"></span>
+  </div>
+  <div id="views"></div>
+</div>
+<script src="data1.js"></script>
+<script src="data2.js"></script>
+<script src="data3.js"></script>
+<script src="data4.js"></script>
+<script src="data5.js"></script>
+<script src="opps1.js"></script>
+<script src="opps2.js"></script>
+<script src="app1.js"></script>
+<script src="app2.js"></script>
+
+</body></html>
